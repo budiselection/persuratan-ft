@@ -107,33 +107,52 @@
                                 {{ $item->created_at->format('d M Y H:i') }}
                             </td>
 
-                            <td class="px-6 py-4 text-right">
-                                <div class="flex items-center justify-end gap-3">
-                                    <a
-                                        href="{{ route('pengajuan.show', $item) }}"
-                                        class="text-xs font-semibold text-primary-base hover:text-primary-hover"
-                                    >
-                                        Detail
-                                    </a>
+                           <td class="px-6 py-4 text-right">
+    <div class="flex items-center justify-end gap-2">
+        <a
+            href="{{ route('pengajuan.show', $item) }}"
+            class="text-xs font-semibold text-primary-base hover:text-primary-hover"
+        >
+            Lihat
+        </a>
 
-                                    @can('update', $item)
-                                        <form
-                                            method="POST"
-                                            action="{{ route('pengajuan.submit', $item) }}"
-                                            onsubmit="return confirm('Ajukan surat ini untuk diproses?')"
-                                        >
-                                            @csrf
+        @can('update', $item)
+            <a
+                href="{{ route('pengajuan.edit', $item) }}"
+                class="text-xs font-semibold text-warning-base hover:text-warning-hover"
+            >
+                Edit
+            </a>
+        @endcan
 
-                                            <button
-                                                type="submit"
-                                                class="text-xs font-semibold text-success-base hover:text-success-text"
-                                            >
-                                                Submit
-                                            </button>
-                                        </form>
-                                    @endcan
-                                </div>
-                            </td>
+        @can('submit', $item)
+            <form method="POST" action="{{ route('pengajuan.submit', $item) }}" class="inline">
+                @csrf
+                <button
+                    type="submit"
+                    onclick="return confirm('Ajukan surat ini ke BAAK?')"
+                    class="text-xs font-semibold text-success-base hover:text-success-hover"
+                >
+                    Ajukan
+                </button>
+            </form>
+        @endcan
+
+        @can('delete', $item)
+            <form method="POST" action="{{ route('pengajuan.destroy', $item) }}" class="inline">
+                @csrf
+                @method('DELETE')
+                <button
+                    type="submit"
+                    onclick="return confirm('Hapus draft ini?')"
+                    class="text-xs font-semibold text-danger-base hover:text-danger-hover"
+                >
+                    Hapus
+                </button>
+            </form>
+        @endcan
+    </div>
+</td>
                         </tr>
                     @empty
                         <tr>

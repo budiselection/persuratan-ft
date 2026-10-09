@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use App\Services\OtpService;
+use Illuminate\Validation\Rules\Password;
+use Illuminate\Validation\Rule;
 
 class RegisteredUserController extends Controller
 {
@@ -28,24 +31,41 @@ class RegisteredUserController extends Controller
      *
      * @throws ValidationException
      */
-    public function store(Request $request): RedirectResponse
+public function store(Request $request, OtpService $otp): RedirectResponse
     {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-        ]);
+        $domain = config('surat.email_domain');
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+    $validated = $request->validate([
+        'name' => ['required', 'string', 'max:100'],
+        'nim' => ['required', 'string', 'min:6', 'max:20', Rule::unique('users', 'nim')],
+        'email' => [
+            'required', 'string', 'lowercase', 'email', 'max:150',
+            'regex:/^[^@]+@'.preg_quote($domain, '/').'$/i',
+            Rule::unique('users', 'email'),
+        ],
+        'password' => ['required', 'confirmed', Password::defaults()],
+    ], [
+        'email.regex' => 'Registrasi hanya menerima email kampus berakhiran @'.$domain.'.',
+        'nim.unique' => 'NIM sudah terdaftar.',
+        'email.unique' => 'Email sudah terdaftar.',
+    ]);
 
-        event(new Registered($user));
+    $user = User::create([
+        'name' => $validated['name'],
+        'nim' => $validated['nim'],
+        'email' => $validated['email'],
+        'password' => Hash::make($validated['password']),
+        'is_active' => true,
+        'email_verified_at' => null,
+    ]);
 
-        Auth::login($user);
+    // Role dikunci di kode, tidak pernah diambil dari request
+    $user->assignRole('Mahasiswa');
 
-        return redirect(route('dashboard', absolute: false));
+    Auth::login($user);
+
+    $otp->generate($user->email, 'registration');
+
+    return redirect()->route('verification.otp');
     }
 }

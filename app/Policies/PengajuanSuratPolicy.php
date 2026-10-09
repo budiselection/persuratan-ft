@@ -10,10 +10,18 @@ class PengajuanSuratPolicy
 {
     // Admin bisa edit jika status masih Draft (Mengajukan) atau Revisi
     public function update(User $user, PengajuanSurat $pengajuan): bool
-    {
-        return $user->hasRole(['Admin Fakultas', 'Super Admin']) && 
-               in_array($pengajuan->status, [StatusPengajuan::MENGAJUKAN, StatusPengajuan::REVISI]);
+{
+    if (! in_array($pengajuan->status, [StatusPengajuan::MENGAJUKAN, StatusPengajuan::REVISI], true)) {
+        return false;
     }
+
+    if ($user->hasAnyRole(['Admin Fakultas', 'Super Admin'])) {
+        return true;
+    }
+
+    // Pemohon (dosen/mahasiswa) hanya bisa edit surat miliknya sendiri
+    return $user->id === $pengajuan->user_id;
+}
 
     // BAAK bisa generate nomor jika status Menunggu Nomor
     public function generateNomor(User $user, PengajuanSurat $pengajuan): bool
@@ -71,5 +79,24 @@ class PengajuanSuratPolicy
         'Penandatangan',
         'Super Admin',
     ]);
+}
+public function create(User $user): bool
+{
+    return $user->hasAnyRole(['Admin Fakultas', 'Dosen', 'Mahasiswa', 'Super Admin']);
+}
+public function submit(User $user, PengajuanSurat $pengajuan): bool
+{
+    if (! in_array($pengajuan->status, [StatusPengajuan::MENGAJUKAN, StatusPengajuan::REVISI], true)) {
+        return false;
+    }
+
+    return $user->id === $pengajuan->user_id
+        || $user->hasAnyRole(['Admin Fakultas', 'Super Admin']);
+}
+
+public function delete(User $user, PengajuanSurat $pengajuan): bool
+{
+    return $pengajuan->status === StatusPengajuan::MENGAJUKAN
+        && $user->id === $pengajuan->user_id;
 }
 }

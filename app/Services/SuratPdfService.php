@@ -52,47 +52,48 @@ class SuratPdfService
     }
 
     protected function buildHtml(PengajuanSurat $pengajuan, User $signer): string
-    {
-        $pengajuan->loadMissing(['jenisSurat']);
+{
+    $pengajuan->loadMissing(['jenisSurat']);
 
-        if (blank($pengajuan->qr_token)) {
-            $pengajuan->forceFill([
-                'qr_token' => (string) Str::uuid(),
-            ])->save();
-        }
-
-        $template = $this->getTemplate($pengajuan);
-
-        $signatureHtml = $this->getSignatureHtml($signer);
-        $qrHtml = $this->getQrHtml($pengajuan);
-
-        $placeholders = $this->getPlaceholders(
-            $pengajuan,
-            $signer,
-            $signatureHtml,
-            $qrHtml
-        );
-
-        $content = strtr($template, $placeholders);
-
-        $showSignatureBox = ! str_contains($template, '{{signature}}')
-            && ! str_contains($template, '{{tanda_tangan}}');
-
-        $showQrBox = ! str_contains($template, '{{qr}}')
-            && ! str_contains($template, '{{qr_code}}');
-
-        return view('surat.pdf-layout', [
-            'content' => $content,
-            'signatureHtml' => $signatureHtml,
-            'qrHtml' => $qrHtml,
-            'showSignatureBox' => $showSignatureBox,
-            'showQrBox' => $showQrBox,
-            'ttdX' => (int) $pengajuan->jenisSurat->ttd_x,
-            'ttdY' => (int) $pengajuan->jenisSurat->ttd_y,
-            'qrX' => (int) $pengajuan->jenisSurat->qr_x,
-            'qrY' => (int) $pengajuan->jenisSurat->qr_y,
-        ])->render();
+    if (blank($pengajuan->qr_token)) {
+        $pengajuan->forceFill([
+            'qr_token' => (string) Str::uuid(),
+        ])->save();
     }
+
+    $template = $this->getTemplate($pengajuan);
+
+    // Kirim $pengajuan ke getSignatureHtml
+    $signatureHtml = $this->getSignatureHtml($signer, $pengajuan);
+    $qrHtml = $this->getQrHtml($pengajuan);
+
+    $placeholders = $this->getPlaceholders(
+        $pengajuan,
+        $signer,
+        $signatureHtml,
+        $qrHtml
+    );
+
+    $content = strtr($template, $placeholders);
+
+    $showSignatureBox = ! str_contains($template, '{{signature}}')
+        && ! str_contains($template, '{{tanda_tangan}}');
+
+    $showQrBox = ! str_contains($template, '{{qr}}')
+        && ! str_contains($template, '{{qr_code}}');
+
+    return view('surat.pdf-layout', [
+        'content' => $content,
+        'signatureHtml' => $signatureHtml,
+        'qrHtml' => $qrHtml,
+        'showSignatureBox' => $showSignatureBox,
+        'showQrBox' => $showQrBox,
+        'ttdX' => (int) $pengajuan->jenisSurat->ttd_x,
+        'ttdY' => (int) $pengajuan->jenisSurat->ttd_y,
+        'qrX' => (int) $pengajuan->jenisSurat->qr_x,
+        'qrY' => (int) $pengajuan->jenisSurat->qr_y,
+    ])->render();
+}
 
     protected function getTemplate(PengajuanSurat $pengajuan): string
     {
@@ -181,8 +182,14 @@ $html = preg_replace('/<\?=.*?\?>/is', '', $html) ?? $html;
         return e((string) $value);
         }
 
-        protected function getSignatureHtml(User $signer): string
+        protected function getSignatureHtml(User $signer, PengajuanSurat $pengajuan): string
         {
+        // Jika mode manual, tidak ada signature image
+        if ($pengajuan->mode_ttd === 'manual') {
+        return '';
+        }
+
+        // Mode digital: gunakan signature image
         if (! $signer->signature_path) {
         return '';
         }

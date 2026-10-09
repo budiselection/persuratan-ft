@@ -178,6 +178,14 @@
                 </h3>
 
                 <div class="mt-4 space-y-3">
+                    @can('update', $pengajuan)
+    <a
+        href="{{ route('pengajuan.edit', $pengajuan) }}"
+        class="block w-full rounded-md border border-primary-border bg-primary-extra-light px-4 py-2 text-center text-sm font-semibold text-primary-base hover:bg-primary-light"
+    >
+        Edit Draft
+    </a>
+@endcan
                     {{-- Tombol Submit ke BAAK (Admin Fakultas) --}}
                     @can('update', $pengajuan)
                         <form

@@ -42,5 +42,12 @@ class AppServiceProvider extends ServiceProvider
         if (app()->environment('production')) {
             URL::forceScheme('https');
         }
+        RateLimiter::for('otp', function (Request $request) {
+    return [
+        Limit::perMinute(3)->by($request->ip()),
+        Limit::perDay(15)->by(strtolower((string) $request->input('email', $request->ip()))),
+    ];
+});
     }
+    
 }

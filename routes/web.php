@@ -12,6 +12,8 @@ use App\Http\Controllers\JenisSuratController;
 use App\Http\Controllers\LaporanController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\Auth\OtpVerificationController;
+use App\Http\Controllers\Auth\ActivationController;
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -26,10 +28,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('pengajuan.download');
 
     // Admin Fakultas
-    Route::middleware(['role:Admin Fakultas|Super Admin'])->group(function () {
-        Route::resource('pengajuan', PengajuanSuratController::class)->except('show');
-        Route::post('/pengajuan/{pengajuan}/submit', [PengajuanSuratController::class, 'submit'])->name('pengajuan.submit');
-    });
+    // Route::middleware(['role:Admin Fakultas|Super Admin'])->group(function () {
+    //     Route::resource('pengajuan', PengajuanSuratController::class)->except('show');
+    //     Route::post('/pengajuan/{pengajuan}/submit', [PengajuanSuratController::class, 'submit'])->name('pengajuan.submit');
+    // });
 
     // Detail pengajuan: terbuka untuk semua role login, otorisasi lewat Policy view
     Route::get('/pengajuan/{pengajuan}', [PengajuanSuratController::class, 'show'])
@@ -51,11 +53,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // Penandatangan
-    Route::middleware(['role:Penandatangan|Super Admin'])->group(function () {
-        Route::get('/ttd/antrian', [TandaTanganController::class, 'index'])->name('ttd.antrian');
-        Route::get('/ttd/{pengajuan}/preview', [TandaTanganController::class, 'preview'])->name('ttd.preview');
-        Route::post('/ttd/{pengajuan}/sign', [TandaTanganController::class, 'sign'])->name('ttd.sign');
-    });
+Route::middleware(['role:Penandatangan|Super Admin'])->group(function () {
+    Route::get('/ttd/antrian', [TandaTanganController::class, 'index'])->name('ttd.antrian');
+    Route::get('/ttd/{pengajuan}/preview', [TandaTanganController::class, 'preview'])->name('ttd.preview');
+    Route::get('/ttd/{pengajuan}/sign', [TandaTanganController::class, 'showSignForm'])->name('ttd.sign-form');
+    Route::post('/ttd/{pengajuan}/sign', [TandaTanganController::class, 'sign'])->name('ttd.sign');
+});
 
     // Super Admin: master data + template + user
     Route::middleware(['role:Super Admin'])->group(function () {
@@ -83,6 +86,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('jenis-surat.template.update');
 
         Route::resource('users', UserController::class)->except('show');
+        Route::post('/users/{user}/resend-otp', [UserController::class, 'resendOtp'])->name('users.resend-otp');
     });
 
     // Laporan
@@ -97,11 +101,28 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->middleware('throttle:laporan-export')
             ->name('laporan.export.pdf');
     });
+    // Pemohon: Admin Fakultas, Dosen, Mahasiswa, Super Admin
+Route::middleware(['role:Admin Fakultas|Dosen|Mahasiswa|Super Admin'])->group(function () {
+    Route::resource('pengajuan', PengajuanSuratController::class)->except('show');
+    Route::post('/pengajuan/{pengajuan}/submit', [PengajuanSuratController::class, 'submit'])->name('pengajuan.submit');
+});
 
     // Notifikasi
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
     Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
     Route::post('/notifications/{notificationId}/read', [NotificationController::class, 'markRead'])->name('notifications.mark-read');
+});
+// Verifikasi OTP setelah registrasi mahasiswa (login, belum verified)
+Route::middleware('auth')->group(function () {
+    Route::get('/verify-otp', [OtpVerificationController::class, 'show'])->name('verification.otp');
+    Route::post('/verify-otp', [OtpVerificationController::class, 'verify'])->middleware('throttle:otp')->name('verification.otp.verify');
+    Route::post('/verify-otp/resend', [OtpVerificationController::class, 'resend'])->middleware('throttle:otp')->name('verification.otp.resend');
+});
+// Aktivasi akun Dosen buatan admin (guest)
+Route::middleware('guest')->group(function () {
+    Route::get('/aktivasi', [ActivationController::class, 'show'])->name('activation.form');
+    Route::post('/aktivasi/otp', [ActivationController::class, 'requestOtp'])->middleware('throttle:otp')->name('activation.otp');
+    Route::post('/aktivasi', [ActivationController::class, 'activate'])->middleware('throttle:otp')->name('activation.activate');
 });
 
 // Verifikasi publik melalui QR code

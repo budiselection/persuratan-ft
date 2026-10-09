@@ -13,10 +13,7 @@
             </p>
         </div>
 
-        <form
-            method="POST"
-            action="{{ route('users.update', $user) }}"
-        >
+        <form method="POST" action="{{ route('users.update', $user) }}">
             @csrf
             @method('PUT')
 

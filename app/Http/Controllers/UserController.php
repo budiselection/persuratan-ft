@@ -8,6 +8,9 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Role;
+use App\Services\OtpService;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 class UserController extends Controller
 {
@@ -30,26 +33,33 @@ class UserController extends Controller
         return view('users.create', compact('roles'));
     }
 
-    public function store(StoreUserRequest $request)
-    {
-        $validated = $request->validated();
+    public function store(Request $request)
+{
+    $validated = $this->validateUser($request);
 
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'nip' => $validated['nip'] ?? null,
-            'password' => Hash::make($validated['password']),
-            'is_active' => (bool) ($validated['is_active'] ?? true),
-        ]);
+    $user = User::create([
+        'name' => $validated['name'],
+        'email' => $validated['email'],
+        'nip' => $validated['nip'] ?? null,
+        'nim' => $validated['nim'] ?? null,
+        'is_active' => $request->boolean('is_active', true),
+        // Password kosong = akun pending aktivasi via OTP
+        'password' => filled($validated['password'] ?? null) ? Hash::make($validated['password']) : null,
+        'email_verified_at' => filled($validated['password'] ?? null) ? now() : null,
+    ]);
 
-        $user->syncRoles([
-            $validated['role'],
-        ]);
+    $user->assignRole($validated['role']);
 
-        return redirect()
-            ->route('users.index')
-            ->with('success', 'User berhasil dibuat.');
+    if (blank($validated['password'] ?? null)) {
+        app(OtpService::class)->generate($user->email, 'activation');
+
+        return redirect()->route('users.index')
+            ->with('success', 'User dibuat. OTP aktivasi telah dikirim ke email user.');
     }
+
+    return redirect()->route('users.index')->with('success', 'User berhasil dibuat.');
+}
+
 
     public function edit(User $user)
     {
@@ -60,41 +70,33 @@ class UserController extends Controller
         return view('users.edit', compact('user', 'roles'));
     }
 
-    public function update(UpdateUserRequest $request, User $user)
-    {
-        $validated = $request->validated();
+    public function update(Request $request, User $user)
+{
+    $validated = $this->validateUser($request, $user);
 
-        // Cegah user mengubah role/status aktif dirinya sendiri dari halaman ini
-        if ($user->is($request->user())) {
-            unset($validated['role'], $validated['is_active']);
-        }
-
-        $user->fill([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'nip' => $validated['nip'] ?? null,
-        ]);
-
-        if (! empty($validated['password'])) {
-            $user->password = Hash::make($validated['password']);
-        }
-
-        if (array_key_exists('is_active', $validated)) {
-            $user->is_active = (bool) $validated['is_active'];
-        }
-
-        $user->save();
-
-        if (isset($validated['role'])) {
-            $user->syncRoles([
-                $validated['role'],
-            ]);
-        }
-
-        return redirect()
-            ->route('users.index')
-            ->with('success', 'User berhasil diperbarui.');
+    // Cegah Super Admin menurunkan role dirinya sendiri
+    if ($user->id === $request->user()->id && $validated['role'] !== 'Super Admin') {
+        return back()->withErrors(['role' => 'Anda tidak dapat mengubah role diri sendiri.']);
     }
+
+    $user->fill([
+        'name' => $validated['name'],
+        'email' => $validated['email'],
+        'nip' => $validated['nip'] ?? null,
+        'nim' => $validated['nim'] ?? null,
+        'is_active' => $request->boolean('is_active', true),
+    ]);
+
+    if (filled($validated['password'] ?? null)) {
+        $user->password = Hash::make($validated['password']);
+        $user->email_verified_at = $user->email_verified_at ?? now();
+    }
+
+    $user->save();
+    $user->syncRoles([$validated['role']]);
+
+    return redirect()->route('users.index')->with('success', 'User diperbarui.');
+}
 
     public function destroy(Request $request, User $user)
     {
@@ -110,4 +112,32 @@ class UserController extends Controller
 
         return back()->with('success', 'User berhasil dihapus.');
     }
+    protected function validateUser(Request $request, ?User $user = null): array
+{
+    $domain = config('surat.email_domain');
+
+    return $request->validate([
+        'name' => ['required', 'string', 'max:100'],
+        'email' => [
+            'required', 'string', 'lowercase', 'email', 'max:150',
+            'regex:/^[^@]+@'.preg_quote($domain, '/').'$/i',
+            Rule::unique('users', 'email')->ignore($user?->id),
+        ],
+        'nip' => ['nullable', 'string', 'max:30'],
+        'nim' => ['nullable', 'string', 'max:20', Rule::unique('users', 'nim')->ignore($user?->id)],
+        'role' => ['required', Rule::in(['Super Admin', 'Admin Fakultas', 'BAAK', 'Penandatangan', 'Dosen', 'Mahasiswa'])],
+        'password' => ['nullable', 'confirmed', Password::defaults()],
+        'is_active' => ['nullable', 'boolean'],
+    ], [
+        'email.regex' => 'Email wajib berakhiran @'.$domain.'.',
+    ]);
+}
+public function resendOtp(User $user, OtpService $otp)
+{
+    abort_if($user->password !== null, 422, 'Akun sudah aktif, OTP tidak diperlukan.');
+
+    $otp->generate($user->email, 'activation');
+
+    return back()->with('success', 'OTP aktivasi dikirim ulang ke '.$user->email);
+}
 }

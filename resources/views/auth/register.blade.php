@@ -1,52 +1,51 @@
 <x-guest-layout>
-    <form method="POST" action="{{ route('register') }}">
+    <form method="POST" action="{{ route('register') }}" class="space-y-5">
         @csrf
 
-        <!-- Name -->
         <div>
-            <x-input-label for="name" :value="__('Name')" />
-            <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
+            <x-input-label for="name" value="Nama Lengkap" />
+            <x-text-input id="name" name="name" type="text" class="mt-1 block w-full" :value="old('name')" required autofocus />
             <x-input-error :messages="$errors->get('name')" class="mt-2" />
         </div>
 
-        <!-- Email Address -->
-        <div class="mt-4">
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" />
+        <div>
+            <x-input-label for="nim" value="NIM" />
+            <x-text-input id="nim" name="nim" type="text" class="mt-1 block w-full" :value="old('nim')" required />
+            <x-input-error :messages="$errors->get('nim')" class="mt-2" />
+        </div>
+
+        <div>
+            <x-input-label for="email" value="Email Kampus" />
+            <x-text-input id="email" name="email" type="email" class="mt-1 block w-full" :value="old('email')" required />
+            <p class="mt-1 text-xs text-neutral-500">
+                Wajib berakhiran @{{ config('surat.email_domain') }}
+            </p>
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
-
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="new-password" />
-
+        <div>
+            <x-input-label for="password" value="Password" />
+            <x-text-input id="password" name="password" type="password" class="mt-1 block w-full" required />
             <x-input-error :messages="$errors->get('password')" class="mt-2" />
         </div>
 
-        <!-- Confirm Password -->
-        <div class="mt-4">
-            <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
-
-            <x-text-input id="password_confirmation" class="block mt-1 w-full"
-                            type="password"
-                            name="password_confirmation" required autocomplete="new-password" />
-
+        <div>
+            <x-input-label for="password_confirmation" value="Konfirmasi Password" />
+            <x-text-input id="password_confirmation" name="password_confirmation" type="password" class="mt-1 block w-full" required />
             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
         </div>
 
-        <div class="flex items-center justify-end mt-4">
-            <a class="underline text-sm text-neutral-600 hover:text-neutral-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-focus" href="{{ route('login') }}">
-                {{ __('Already registered?') }}
+        <div class="flex items-center justify-between">
+            <a class="text-sm text-primary-base underline hover:text-primary-hover" href="{{ route('login') }}">
+                Sudah punya akun?
             </a>
-
-            <x-primary-button class="ms-4">
-                {{ __('Register') }}
-            </x-primary-button>
+            <a class="text-sm text-primary-base underline hover:text-primary-hover" href="{{ route('activation.form') }}">
+                Aktivasi Akun Dosen
+            </a>
         </div>
+
+        <x-primary-button class="w-full justify-center">
+            Daftar & Kirim Kode OTP
+        </x-primary-button>
     </form>
 </x-guest-layout>

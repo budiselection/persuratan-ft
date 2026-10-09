@@ -7,27 +7,17 @@ use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class StorePengajuanRequest extends FormRequest
+class UpdatePengajuanRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     * Otorisasi detail ditangani di Policy controller, bukan di sini.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     */
     public function rules(): array
     {
         return [
-            // Jenis surat wajib ada di database
             'jenis_surat_id' => ['required', 'exists:jenis_surat,id'],
-            
-            // Target penandatangan harus user aktif dengan role Penandatangan/Super Admin
             'target_signer_id' => [
                 'required',
                 'exists:users,id',
@@ -39,25 +29,13 @@ class StorePengajuanRequest extends FormRequest
                     }
                 },
             ],
-            
-            // Data dinamis (form fields per jenis surat) wajib array
             'data_json' => ['required', 'array'],
-            
-            // Lampiran opsional, tapi jika ada harus array file
             'lampiran' => ['nullable', 'array'],
-            
-            // Setiap file lampiran: PDF/JPG/PNG, max 2MB
             'lampiran.*' => ['file', 'mimes:pdf,jpg,jpeg,png', 'max:2048'],
-            
-            // Tombol submit: draft atau submit (wajib salah satu)
             'submit_action' => ['required', 'in:draft,submit'],
         ];
     }
 
-    /**
-     * Custom validation logic setelah rule dasar lolos.
-     * Di sini kita validasi field dinamis per jenis surat.
-     */
     public function withValidator($validator): void
     {
         $validator->after(function ($validator) {
@@ -69,11 +47,9 @@ class StorePengajuanRequest extends FormRequest
 
             $data = $this->input('data_json', []);
 
-            // Loop setiap field yang didefinisikan di jenis surat
             foreach ($jenis->fields_json ?? [] as $field) {
                 $key = $field['name'] ?? null;
 
-                // Jika field required tapi kosong, tambahkan error
                 if ($key && ($field['required'] ?? false) && blank($data[$key] ?? null)) {
                     $validator->errors()->add(
                         'data_json.'.$key,
@@ -84,9 +60,6 @@ class StorePengajuanRequest extends FormRequest
         });
     }
 
-    /**
-     * Custom error messages untuk rule tertentu.
-     */
     public function messages(): array
     {
         return [

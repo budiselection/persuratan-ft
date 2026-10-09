@@ -19,6 +19,7 @@ class PengajuanSurat extends Model
         'no_tiket', 'jenis_surat_id', 'user_id', 'data_json', 
         'status', 'catatan_revisi', 'nomor_surat', 'file_pdf', 
         'qr_token', 'penandatangan_id', 'tanggal_ttd','target_signer_id',
+        'mode_ttd',
     ];
 
     protected $casts = [

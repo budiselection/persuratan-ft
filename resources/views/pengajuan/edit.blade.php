@@ -1,18 +1,25 @@
 @extends('layouts.admin')
 
-@section('title', 'Buat Pengajuan Surat')
+@section('title', 'Edit Pengajuan')
 
 @section('content')
     <div
-        x-data="pengajuanForm(@js($jenisListData), @js(old('data_json', [])), @js(old('jenis_surat_id', '')))"
+        x-data="pengajuanForm(@js($jenisListData), @js(old('data_json', $pengajuan->data_json ?? [])), @js($pengajuan->jenis_surat_id))"
         class="mx-auto max-w-4xl"
     >
         <div class="mb-6">
-            <h2 class="text-lg font-semibold text-neutral-900">Buat Pengajuan Surat</h2>
+            <h2 class="text-lg font-semibold text-neutral-900">Edit Pengajuan</h2>
             <p class="text-sm text-neutral-500">
-                Isi data sesuai jenis surat. Simpan sebagai draft untuk dilanjutkan nanti, atau langsung ajukan ke BAAK.
+                No Tiket: {{ $pengajuan->no_tiket }}
             </p>
         </div>
+
+        @if ($pengajuan->status === \App\Enums\StatusPengajuan::REVISI && $pengajuan->catatan_revisi)
+            <div class="mb-4 rounded-md border border-warning-border bg-warning-background px-4 py-3 text-sm text-warning-text">
+                <p class="font-semibold">Catatan Revisi dari BAAK:</p>
+                <p class="mt-1">{{ $pengajuan->catatan_revisi }}</p>
+            </div>
+        @endif
 
         @php $dataErrors = Arr::flatten($errors->get('data_json.*')); @endphp
         @if (count($dataErrors))
@@ -27,36 +34,27 @@
 
         <form
             method="POST"
-            action="{{ route('pengajuan.store') }}"
+            action="{{ route('pengajuan.update', $pengajuan) }}"
             enctype="multipart/form-data"
             class="space-y-6"
         >
             @csrf
+            @method('PUT')
 
-            {{-- Informasi Dasar --}}
             <div class="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
                 <h3 class="text-sm font-semibold text-neutral-900">Informasi Dasar</h3>
 
                 <div class="mt-4 grid grid-cols-1 gap-5 md:grid-cols-2">
                     <div>
-                        <label for="jenis_surat_id" class="block text-sm font-medium text-neutral-700">
-                            Jenis Surat <span class="text-danger-base">*</span>
-                        </label>
-                        <select
-                            id="jenis_surat_id"
-                            name="jenis_surat_id"
-                            x-model="jenisId"
-                            required
-                            class="mt-2 w-full rounded-md border-neutral-300 text-sm focus:border-primary-focus focus:ring-primary-focus"
+                        <label class="block text-sm font-medium text-neutral-700">Jenis Surat</label>
+                        <input
+                            type="text"
+                            value="{{ $pengajuan->jenisSurat?->nama }}"
+                            disabled
+                            class="mt-2 w-full rounded-md border-neutral-200 bg-neutral-100 text-sm text-neutral-500"
                         >
-                            <option value="">-- Pilih Jenis Surat --</option>
-                            <template x-for="jenis in jenisList" :key="jenis.id">
-                                <option :value="jenis.id" x-text="jenis.nama"></option>
-                            </template>
-                        </select>
-                        @error('jenis_surat_id')
-                            <p class="mt-1 text-sm text-danger-base">{{ $message }}</p>
-                        @enderror
+                        <input type="hidden" name="jenis_surat_id" value="{{ $pengajuan->jenis_surat_id }}">
+                        <p class="mt-1 text-xs text-neutral-500">Jenis surat tidak dapat diubah setelah draft dibuat.</p>
                     </div>
 
                     <div>
@@ -69,9 +67,11 @@
                             required
                             class="mt-2 w-full rounded-md border-neutral-300 text-sm focus:border-primary-focus focus:ring-primary-focus"
                         >
-                            <option value="">-- Pilih Penandatangan --</option>
                             @foreach ($penandatangan as $calon)
-                                <option value="{{ $calon->id }}" @selected(old('target_signer_id') == $calon->id)>
+                                <option
+                                    value="{{ $calon->id }}"
+                                    @selected(old('target_signer_id', $pengajuan->target_signer_id) == $calon->id)
+                                >
                                     {{ $calon->name }} — NIP: {{ $calon->nip ?? '-' }}
                                 </option>
                             @endforeach
@@ -83,11 +83,10 @@
                 </div>
             </div>
 
-            {{-- Field Dinamis --}}
             <div class="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
                 <h3 class="text-sm font-semibold text-neutral-900">Data Isian Surat</h3>
 
-                <div class="mt-4 grid grid-cols-1 gap-5 md:grid-cols-2" x-show="selectedJenis" x-cloak>
+                <div class="mt-4 grid grid-cols-1 gap-5 md:grid-cols-2">
                     <template x-for="field in (selectedJenis ? selectedJenis.fields : [])" :key="field.name">
                         <div :class="field.type === 'textarea' ? 'md:col-span-2' : ''">
                             <label class="block text-sm font-medium text-neutral-700">
@@ -113,15 +112,22 @@
                         </div>
                     </template>
                 </div>
-
-                <p x-show="!selectedJenis" class="mt-2 text-sm text-neutral-500">
-                    Pilih jenis surat terlebih dahulu untuk menampilkan form isian.
-                </p>
             </div>
 
-            {{-- Lampiran --}}
             <div class="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
-                <h3 class="text-sm font-semibold text-neutral-900">Lampiran Pendukung (Opsional)</h3>
+                <h3 class="text-sm font-semibold text-neutral-900">Lampiran</h3>
+
+                @if ($pengajuan->lampiran->count())
+                    <ul class="mt-3 space-y-2">
+                        @foreach ($pengajuan->lampiran as $lampiran)
+                            <li class="flex items-center justify-between rounded-md border border-neutral-200 px-4 py-2 text-sm">
+                                <span class="text-neutral-700">{{ $lampiran->jenis }}</span>
+                                <a href="{{ asset('storage/'.$lampiran->file_path) }}" target="_blank" class="text-xs font-semibold text-primary-base">Lihat</a>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+
                 <input
                     type="file"
                     name="lampiran[]"
@@ -129,13 +135,12 @@
                     accept=".pdf,.jpg,.jpeg,.png"
                     class="mt-3 w-full text-sm text-neutral-600 file:mr-4 file:rounded-md file:border-0 file:bg-primary-base file:px-4 file:py-2 file:text-sm file:font-semibold file:text-primary-text hover:file:bg-primary-hover"
                 >
-                <p class="mt-1 text-xs text-neutral-500">Format PDF/JPG/PNG, maksimal 2 MB per file.</p>
+                <p class="mt-1 text-xs text-neutral-500">File baru akan ditambahkan ke lampiran existing.</p>
                 @error('lampiran.*')
                     <p class="mt-1 text-sm text-danger-base">{{ $message }}</p>
                 @enderror
             </div>
 
-            {{-- Tombol Aksi --}}
             <div class="flex justify-end gap-3">
                 <a
                     href="{{ route('pengajuan.index') }}"

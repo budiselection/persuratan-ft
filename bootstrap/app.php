@@ -11,17 +11,13 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
-
-        $middleware->alias([
-            'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
-            'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
-            'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
-        ]);
-
-    // Aktifkan jika aplikasi berada di belakang reverse proxy / load balancer
-    // $middleware->trustProxies(at: '*');
-    })
+    $middleware->alias([
+        'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
+        'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+        'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
+        'verified' => \App\Http\Middleware\EnsureEmailVerified::class,
+    ]);
+})
     ->withExceptions(function (Exceptions $exceptions) {
         //
     })->create();

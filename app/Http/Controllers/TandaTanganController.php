@@ -2,108 +2,124 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\StatusPengajuan;
-use App\Models\LogAktivitas;
 use App\Models\PengajuanSurat;
+use App\Models\LogAktivitas;
+use App\Enums\StatusPengajuan;
 use App\Services\SuratPdfService;
+use App\Notifications\PengajuanStatusChanged;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
-use Throwable;
 
 class TandaTanganController extends Controller
 {
     public function index()
-{
-    $userId = auth()->id();
+    {
+        $userId = auth()->id();
 
-    $antrian = PengajuanSurat::query()
-        ->with(['jenisSurat', 'pemohon', 'targetSigner'])
-        ->where('status', StatusPengajuan::MENUNGGU_TTD)
-        ->where(function ($query) use ($userId) {
-            $query->where('target_signer_id', $userId)
-                ->orWhereNull('target_signer_id');
-        })
-        ->latest()
-        ->paginate(10);
+        $antrian = PengajuanSurat::query()
+            ->with(['jenisSurat', 'pemohon', 'targetSigner'])
+            ->where('status', StatusPengajuan::MENUNGGU_TTD)
+            ->where(function ($query) use ($userId) {
+                $query->where('target_signer_id', $userId)
+                    ->orWhereNull('target_signer_id');
+            })
+            ->latest()
+            ->paginate(10);
 
-    return view('ttd.index', compact('antrian'));
-}
-
-    public function preview(
-        Request $request,
-        PengajuanSurat $pengajuan,
-        SuratPdfService $pdfService
-    ) {
-        $this->authorize('sign', $pengajuan);
-
-        $signer = $request->user();
-
-        if (! $signer->signature_path) {
-            return redirect()
-                ->route('signature.create')
-                ->with('error', 'Silakan unggah tanda tangan digital terlebih dahulu.');
-        }
-
-        $content = $pdfService->render($pengajuan, $signer);
-
-        return response($content, 200)
-            ->header('Content-Type', 'application/pdf')
-            ->header('Content-Disposition', 'inline; filename="preview-' . $pengajuan->no_tiket . '.pdf"');
+        return view('ttd.index', compact('antrian'));
     }
 
-    public function sign(
-        Request $request,
-        PengajuanSurat $pengajuan,
-        SuratPdfService $pdfService
-    ) {
+    public function preview(PengajuanSurat $pengajuan, SuratPdfService $pdfService)
+    {
         $this->authorize('sign', $pengajuan);
 
-        $signer = $request->user();
+        $pdfContent = $pdfService->render($pengajuan, auth()->user());
 
-        if (! $signer->signature_path) {
-            return redirect()
-                ->route('signature.create')
-                ->with('error', 'Silakan unggah tanda tangan digital terlebih dahulu.');
+        return response($pdfContent)
+            ->header('Content-Type', 'application/pdf');
+    }
+
+    /**
+     * Tampilkan form pilihan mode tanda tangan
+     */
+    public function showSignForm(PengajuanSurat $pengajuan)
+    {
+        $this->authorize('sign', $pengajuan);
+
+        $hasSignature = auth()->user()->signature_path !== null;
+
+        return view('ttd.sign-form', compact('pengajuan', 'hasSignature'));
+    }
+
+    /**
+     * Proses tanda tangan (digital atau manual)
+     */
+    public function sign(Request $request, PengajuanSurat $pengajuan, SuratPdfService $pdfService)
+    {
+        $this->authorize('sign', $pengajuan);
+
+        $validated = $request->validate([
+            'mode_ttd' => ['required', 'in:digital,manual'],
+            'tanggal_ttd' => ['required', 'date', 'before_or_equal:today'],
+        ]);
+
+        $user = auth()->user();
+
+        // Validasi: jika mode digital, user wajib punya signature
+        if ($validated['mode_ttd'] === 'digital' && ! $user->signature_path) {
+            return back()->withErrors([
+                'mode_ttd' => 'Anda belum mengunggah tanda tangan digital. Silakan unggah terlebih dahulu.',
+            ]);
         }
 
-        if (blank($pengajuan->nomor_surat)) {
-            return back()->with('error', 'Nomor surat belum tersedia.');
-        }
+        DB::transaction(function () use ($pengajuan, $pdfService, $validated, $user) {
+            $oldStatus = $pengajuan->status;
 
-        $disk = Storage::disk(config('surat.pdf_disk', 'local'));
-        $path = null;
+            // Generate PDF final
+            $pdfPath = $pdfService->finalize($pengajuan, $user);
 
-        try {
-            $path = $pdfService->finalize($pengajuan, $signer);
+            // Update pengajuan
+            $pengajuan->update([
+                'status' => StatusPengajuan::SELESAI,
+                'mode_ttd' => $validated['mode_ttd'],
+                'tanggal_ttd' => $validated['tanggal_ttd'],
+                'penandatangan_id' => $user->id,
+                'file_pdf' => $pdfPath,
+            ]);
 
-            DB::transaction(function () use ($pengajuan, $signer, $path, $request) {
-                $pengajuan->forceFill([
-                    'penandatangan_id' => $signer->id,
-                    'tanggal_ttd' => now(),
-                    'file_pdf' => $path,
-                    'status' => StatusPengajuan::SELESAI,
-                ])->save();
+            // Log aktivitas
+            LogAktivitas::create([
+                'pengajuan_id' => $pengajuan->id,
+                'user_id' => $user->id,
+                'aksi' => 'sign',
+                'keterangan' => sprintf(
+                    'Surat ditandatangani (%s) pada %s. PDF final dibuat.',
+                    $validated['mode_ttd'] === 'digital' ? 'Digital' : 'Konfirmasi Manual',
+                    $pengajuan->tanggal_ttd->format('d M Y')
+                ),
+            ]);
 
-                LogAktivitas::create([
-                    'pengajuan_id' => $pengajuan->id,
-                    'user_id' => $request->user()->id,
-                    'aksi' => 'tanda_tangan',
-                    'keterangan' => 'Surat ditandatangani dan PDF final dibuat.',
-                ]);
-            });
-        } catch (Throwable $e) {
-            if ($path && $disk->exists($path)) {
-                $disk->delete($path);
-            }
-
-            report($e);
-
-            return back()->with('error', 'Gagal menandatangani surat. Silakan coba lagi.');
-        }
+            // Kirim notifikasi
+            $this->sendNotifications($pengajuan, $oldStatus);
+        });
 
         return redirect()
-            ->route('pengajuan.show', $pengajuan)
-            ->with('success', 'Surat berhasil ditandatangani dan selesai.');
+            ->route('ttd.antrian')
+            ->with('success', 'Surat berhasil diproses.');
+    }
+
+    protected function sendNotifications(PengajuanSurat $pengajuan, $oldStatus)
+    {
+        // Notifikasi ke pemohon
+        if ($pengajuan->pemohon) {
+            $pengajuan->pemohon->notify(new PengajuanStatusChanged($pengajuan, $oldStatus));
+        }
+
+        // Notifikasi ke Super Admin
+        $superAdmins = \App\Models\User::role('Super Admin')->get();
+        foreach ($superAdmins as $admin) {
+            $admin->notify(new PengajuanStatusChanged($pengajuan, $oldStatus));
+        }
     }
 }

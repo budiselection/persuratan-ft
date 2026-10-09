@@ -39,4 +39,7 @@ return [
     'logo_footer_height' => env('SURAT_LOGO_FOOTER_HEIGHT', 60),
     'qr_size' => env('SURAT_QR_SIZE', 60),
     'auto_number_enabled' => env('SURAT_AUTO_NUMBER_ENABLED', true),
+    'email_domain' => env('SURAT_EMAIL_DOMAIN', 'tsu.ac.id'),
+    'otp_expires_minutes' => env('SURAT_OTP_EXPIRES', 10),
+    'otp_max_attempts' => env('SURAT_OTP_ATTEMPTS', 5),
 ];
