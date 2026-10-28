@@ -3,12 +3,12 @@
     $roles = ['Super Admin', 'Admin Fakultas', 'BAAK', 'Penandatangan', 'Dosen', 'Mahasiswa'];
 @endphp
 
-<div class="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
+<div class="rounded-2xl border border-slate-200/80 bg-white p-6 sm:p-8 shadow-sm">
     <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
         {{-- Nama --}}
         <div class="md:col-span-2">
-            <label for="name" class="block text-sm font-medium text-neutral-700">
-                Nama Lengkap <span class="text-danger-base">*</span>
+            <label for="name" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                Nama Lengkap <span class="text-rose-600">*</span>
             </label>
             <input
                 type="text"
@@ -16,17 +16,17 @@
                 name="name"
                 value="{{ old('name', $user?->name) }}"
                 required
-                class="mt-2 w-full rounded-md border-neutral-300 text-sm focus:border-primary-focus focus:ring-primary-focus"
+                class="w-full rounded-xl border-slate-200 bg-white text-xs font-semibold text-slate-800 shadow-sm focus:border-[#517085] focus:ring-[#517085]"
             >
             @error('name')
-                <p class="mt-1 text-sm text-danger-base">{{ $message }}</p>
+                <p class="mt-1.5 text-xs text-rose-600">{{ $message }}</p>
             @enderror
         </div>
 
         {{-- Email --}}
         <div>
-            <label for="email" class="block text-sm font-medium text-neutral-700">
-                Email <span class="text-danger-base">*</span>
+            <label for="email" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                Email <span class="text-rose-600">*</span>
             </label>
             <input
                 type="email"
@@ -34,26 +34,26 @@
                 name="email"
                 value="{{ old('email', $user?->email) }}"
                 required
-                class="mt-2 w-full rounded-md border-neutral-300 text-sm focus:border-primary-focus focus:ring-primary-focus"
+                class="w-full rounded-xl border-slate-200 bg-white text-xs font-semibold text-slate-800 shadow-sm focus:border-[#517085] focus:ring-[#517085]"
             >
-            <p class="mt-1 text-xs text-neutral-500">
+            <p class="mt-1 text-[11px] text-slate-400">
                 Wajib berakhiran @{{ config('surat.email_domain') }}
             </p>
             @error('email')
-                <p class="mt-1 text-sm text-danger-base">{{ $message }}</p>
+                <p class="mt-1.5 text-xs text-rose-600">{{ $message }}</p>
             @enderror
         </div>
 
         {{-- Role --}}
         <div>
-            <label for="role" class="block text-sm font-medium text-neutral-700">
-                Role <span class="text-danger-base">*</span>
+            <label for="role" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+                Role <span class="text-rose-600">*</span>
             </label>
             <select
                 id="role"
                 name="role"
                 required
-                class="mt-2 w-full rounded-md border-neutral-300 text-sm focus:border-primary-focus focus:ring-primary-focus"
+                class="w-full rounded-xl border-slate-200 bg-white text-xs font-semibold text-slate-800 shadow-sm focus:border-[#517085] focus:ring-[#517085]"
             >
                 @foreach ($roles as $role)
                     <option
@@ -65,13 +65,13 @@
                 @endforeach
             </select>
             @error('role')
-                <p class="mt-1 text-sm text-danger-base">{{ $message }}</p>
+                <p class="mt-1.5 text-xs text-rose-600">{{ $message }}</p>
             @enderror
         </div>
 
         {{-- NIP --}}
         <div>
-            <label for="nip" class="block text-sm font-medium text-neutral-700">
+            <label for="nip" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
                 NIP / NUPTK (Staff/Dosen)
             </label>
             <input
@@ -79,16 +79,16 @@
                 id="nip"
                 name="nip"
                 value="{{ old('nip', $user?->nip) }}"
-                class="mt-2 w-full rounded-md border-neutral-300 text-sm focus:border-primary-focus focus:ring-primary-focus"
+                class="w-full rounded-xl border-slate-200 bg-white text-xs font-semibold text-slate-800 shadow-sm focus:border-[#517085] focus:ring-[#517085]"
             >
             @error('nip')
-                <p class="mt-1 text-sm text-danger-base">{{ $message }}</p>
+                <p class="mt-1.5 text-xs text-rose-600">{{ $message }}</p>
             @enderror
         </div>
 
         {{-- NIM --}}
         <div>
-            <label for="nim" class="block text-sm font-medium text-neutral-700">
+            <label for="nim" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
                 NIM (Mahasiswa)
             </label>
             <input
@@ -96,48 +96,48 @@
                 id="nim"
                 name="nim"
                 value="{{ old('nim', $user?->nim) }}"
-                class="mt-2 w-full rounded-md border-neutral-300 text-sm focus:border-primary-focus focus:ring-primary-focus"
+                class="w-full rounded-xl border-slate-200 bg-white text-xs font-semibold text-slate-800 shadow-sm focus:border-[#517085] focus:ring-[#517085]"
             >
             @error('nim')
-                <p class="mt-1 text-sm text-danger-base">{{ $message }}</p>
+                <p class="mt-1.5 text-xs text-rose-600">{{ $message }}</p>
             @enderror
         </div>
 
         {{-- Password --}}
         <div>
-            <label for="password" class="block text-sm font-medium text-neutral-700">
+            <label for="password" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
                 Password
             </label>
             <input
                 type="password"
                 id="password"
                 name="password"
-                class="mt-2 w-full rounded-md border-neutral-300 text-sm focus:border-primary-focus focus:ring-primary-focus"
+                class="w-full rounded-xl border-slate-200 bg-white text-xs font-semibold text-slate-800 shadow-sm focus:border-[#517085] focus:ring-[#517085]"
             >
-            <p class="mt-1 text-xs text-neutral-500">
+            <p class="mt-1 text-[11px] text-slate-400">
                 Kosongkan untuk mengirim OTP aktivasi ke email user (disarankan untuk Dosen).
             </p>
             @error('password')
-                <p class="mt-1 text-sm text-danger-base">{{ $message }}</p>
+                <p class="mt-1.5 text-xs text-rose-600">{{ $message }}</p>
             @enderror
         </div>
 
         {{-- Konfirmasi Password --}}
         <div>
-            <label for="password_confirmation" class="block text-sm font-medium text-neutral-700">
+            <label for="password_confirmation" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
                 Konfirmasi Password
             </label>
             <input
                 type="password"
                 id="password_confirmation"
                 name="password_confirmation"
-                class="mt-2 w-full rounded-md border-neutral-300 text-sm focus:border-primary-focus focus:ring-primary-focus"
+                class="w-full rounded-xl border-slate-200 bg-white text-xs font-semibold text-slate-800 shadow-sm focus:border-[#517085] focus:ring-[#517085]"
             >
         </div>
 
         {{-- Status Aktif --}}
-        <div class="md:col-span-2">
-            <label class="flex items-center gap-2 text-sm text-neutral-700">
+        <div class="md:col-span-2 pt-2">
+            <label class="flex items-center gap-2 text-xs font-medium text-slate-700 cursor-pointer">
                 <input
                     type="hidden"
                     name="is_active"
@@ -148,7 +148,7 @@
                     name="is_active"
                     value="1"
                     @checked(old('is_active', $user?->is_active ?? true))
-                    class="rounded border-neutral-300 text-primary-base focus:ring-primary-focus"
+                    class="rounded border-slate-300 text-[#517085] focus:ring-[#517085]"
                 >
                 Akun Aktif
             </label>

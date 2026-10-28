@@ -4,30 +4,31 @@
 
 @section('content')
     <div class="mx-auto max-w-6xl">
-        <div class="mb-6">
-            <h2 class="text-lg font-semibold text-neutral-900">
+        {{-- Header Page --}}
+        <div class="mb-8">
+            <h2 class="text-xl font-bold text-slate-800 tracking-tight">
                 Template Surat
             </h2>
-            <p class="text-sm text-neutral-500">
-                {{ $jenisSurat->nama }} - Kode: {{ $jenisSurat->kode }}
+            <p class="mt-1 text-xs text-slate-500">
+                <span class="font-semibold text-[#517085]">{{ $jenisSurat->nama }}</span> — Kode: <span class="font-mono text-slate-700">{{ $jenisSurat->kode }}</span>
             </p>
         </div>
 
         <div class="grid grid-cols-1 gap-6 xl:grid-cols-3">
+            {{-- Main Section Upload & Settings --}}
             <div class="xl:col-span-2">
-                <div class="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
-                    <h3 class="text-sm font-semibold text-neutral-900">
+                <div class="rounded-2xl border border-slate-200/80 bg-white p-6 sm:p-8 shadow-sm">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">
                         Upload Template HTML
                     </h3>
 
-                    <p class="mt-1 text-sm text-neutral-500">
-    Template berupa HTML. Gunakan placeholder seperti
-    <span class="font-mono">@{{nama}}</span>,
-    <span class="font-mono">@{{nomor_surat}}</span>,
-    <span class="font-mono">@{{signature}}</span>,
-    atau
-    <span class="font-mono">@{{qr}}</span>.
-</p>
+                    <p class="mt-1 text-xs text-slate-500 leading-relaxed">
+                        Template berupa HTML. Gunakan placeholder seperti
+                        <span class="font-mono text-slate-700 font-semibold">@{{nama}}</span>,
+                        <span class="font-mono text-slate-700 font-semibold">@{{nomor_surat}}</span>,
+                        <span class="font-mono text-slate-700 font-semibold">@{{signature}}</span>, atau
+                        <span class="font-mono text-slate-700 font-semibold">@{{qr}}</span>.
+                    </p>
 
                     <form
                         method="POST"
@@ -40,7 +41,7 @@
                         <div>
                             <label
                                 for="template"
-                                class="block text-sm font-medium text-neutral-700"
+                                class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-2"
                             >
                                 File Template HTML
                             </label>
@@ -50,21 +51,22 @@
                                 id="template"
                                 name="template"
                                 accept=".html,.htm"
-                                class="mt-2 block w-full text-sm text-neutral-500 file:mr-4 file:rounded-md file:border-0 file:bg-primary-base file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-primary-hover"
+                                class="w-full text-xs text-slate-500 file:mr-4 file:rounded-xl file:border-0 file:bg-[#517085] file:px-4 file:py-2 file:text-xs file:font-semibold file:text-white hover:file:bg-[#425d70] transition duration-150"
                             >
 
-                            <p class="mt-2 text-xs text-neutral-500">
+                            <p class="mt-2 text-[11px] text-slate-400">
                                 Format: HTML atau HTM. Maksimal 1 MB.
                             </p>
 
                             @error('template')
-                                <p class="mt-2 text-sm text-danger-base">{{ $message }}</p>
+                                <p class="mt-1.5 text-xs text-rose-600">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        {{-- Posisi TTD dan QR --}}
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 pt-2 border-t border-slate-100">
                             <div>
-                                <label class="block text-sm font-medium text-neutral-700">
+                                <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
                                     Posisi Tanda Tangan X
                                 </label>
 
@@ -75,16 +77,16 @@
                                     min="0"
                                     max="2000"
                                     required
-                                    class="mt-2 w-full rounded-md border-neutral-300 text-sm focus:border-primary-focus focus:ring-primary-focus"
+                                    class="w-full rounded-xl border-slate-200 bg-white text-xs font-semibold text-slate-800 shadow-sm focus:border-[#517085] focus:ring-[#517085]"
                                 >
 
                                 @error('ttd_x')
-                                    <p class="mt-2 text-sm text-danger-base">{{ $message }}</p>
+                                    <p class="mt-1 text-xs text-rose-600">{{ $message }}</p>
                                 @enderror
                             </div>
 
                             <div>
-                                <label class="block text-sm font-medium text-neutral-700">
+                                <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
                                     Posisi Tanda Tangan Y
                                 </label>
 
@@ -95,16 +97,16 @@
                                     min="0"
                                     max="2000"
                                     required
-                                    class="mt-2 w-full rounded-md border-neutral-300 text-sm focus:border-primary-focus focus:ring-primary-focus"
+                                    class="w-full rounded-xl border-slate-200 bg-white text-xs font-semibold text-slate-800 shadow-sm focus:border-[#517085] focus:ring-[#517085]"
                                 >
 
                                 @error('ttd_y')
-                                    <p class="mt-2 text-sm text-danger-base">{{ $message }}</p>
+                                    <p class="mt-1 text-xs text-rose-600">{{ $message }}</p>
                                 @enderror
                             </div>
 
                             <div>
-                                <label class="block text-sm font-medium text-neutral-700">
+                                <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
                                     Posisi QR X
                                 </label>
 
@@ -115,16 +117,16 @@
                                     min="0"
                                     max="2000"
                                     required
-                                    class="mt-2 w-full rounded-md border-neutral-300 text-sm focus:border-primary-focus focus:ring-primary-focus"
+                                    class="w-full rounded-xl border-slate-200 bg-white text-xs font-semibold text-slate-800 shadow-sm focus:border-[#517085] focus:ring-[#517085]"
                                 >
 
                                 @error('qr_x')
-                                    <p class="mt-2 text-sm text-danger-base">{{ $message }}</p>
+                                    <p class="mt-1 text-xs text-rose-600">{{ $message }}</p>
                                 @enderror
                             </div>
 
                             <div>
-                                <label class="block text-sm font-medium text-neutral-700">
+                                <label class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
                                     Posisi QR Y
                                 </label>
 
@@ -135,27 +137,28 @@
                                     min="0"
                                     max="2000"
                                     required
-                                    class="mt-2 w-full rounded-md border-neutral-300 text-sm focus:border-primary-focus focus:ring-primary-focus"
+                                    class="w-full rounded-xl border-slate-200 bg-white text-xs font-semibold text-slate-800 shadow-sm focus:border-[#517085] focus:ring-[#517085]"
                                 >
 
                                 @error('qr_y')
-                                    <p class="mt-2 text-sm text-danger-base">{{ $message }}</p>
+                                    <p class="mt-1 text-xs text-rose-600">{{ $message }}</p>
                                 @enderror
                             </div>
                         </div>
 
-                        <div class="flex items-center justify-between">
-                            <div class="text-sm text-neutral-500">
+                        <div class="flex items-center justify-between pt-4 border-t border-slate-100">
+                            <div class="text-xs text-slate-500">
+                                Template saat ini: 
                                 @if ($jenisSurat->template_path)
-                                    Template saat ini: <span class="font-medium text-success-text">Tersimpan</span>
+                                    <span class="font-bold text-emerald-700">Tersimpan</span>
                                 @else
-                                    Template saat ini: <span class="font-medium text-neutral-700">Default sistem</span>
+                                    <span class="font-semibold text-slate-600">Default sistem</span>
                                 @endif
                             </div>
 
                             <button
                                 type="submit"
-                                class="rounded-md bg-primary-base px-4 py-2 text-sm font-semibold text-white hover:bg-primary-hover"
+                                class="rounded-xl bg-[#517085] px-5 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-[#425d70] active:bg-[#354c5c] transition duration-150"
                             >
                                 Simpan Template & Posisi
                             </button>
@@ -164,56 +167,61 @@
                 </div>
             </div>
 
+            {{-- Sidebar Placeholders & Actions --}}
             <div class="space-y-6">
-                <div class="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
-                    <h3 class="text-sm font-semibold text-neutral-900">
+                {{-- Placeholder Informasi --}}
+                <div class="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">
                         Placeholder Sistem
                     </h3>
 
-                   <div class="mt-4 flex flex-wrap gap-2">
-    @foreach ($knownPlaceholders as $placeholder)
-        <span class="rounded bg-neutral-100 px-2 py-1 font-mono text-xs text-neutral-700">
-            {{ chr(123) . chr(123) . $placeholder . chr(125) . chr(125) }}
-        </span>
-    @endforeach
-</div>
+                    <div class="mt-3 flex flex-wrap gap-1.5">
+                        @foreach ($knownPlaceholders as $placeholder)
+                            <span class="rounded-lg bg-slate-100 px-2.5 py-1 font-mono text-[11px] text-slate-700 border border-slate-200/60">
+                                {{ chr(123) . chr(123) . $placeholder . chr(125) . chr(125) }}
+                            </span>
+                        @endforeach
+                    </div>
                 </div>
 
                 @if (count($unknownPlaceholders))
-                    <div class="rounded-lg border border-warning-border bg-warning-background p-6 shadow-sm">
-                        <h3 class="text-sm font-semibold text-warning-text">
+                    <div class="rounded-2xl border border-amber-200/80 bg-amber-50/80 p-6 shadow-sm">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-amber-800">
                             Placeholder Tidak Dikenali
                         </h3>
 
-                        <p class="mt-2 text-sm text-warning-text">
+                        <p class="mt-1.5 text-xs text-amber-700">
                             Placeholder berikut ada di template tetapi tidak tersedia saat render:
                         </p>
 
-                        <div class="mt-4 flex flex-wrap gap-2">
-    @foreach ($knownPlaceholders as $placeholder)
-        <span class="rounded bg-neutral-100 px-2 py-1 font-mono text-xs text-neutral-700">
-            {{ chr(123) . chr(123) . $placeholder . chr(125) . chr(125) }}
-        </span>
-    @endforeach
-</div>
+                        <div class="mt-3 flex flex-wrap gap-1.5">
+                            @foreach ($unknownPlaceholders as $placeholder)
+                                <span class="rounded-lg bg-amber-100 px-2.5 py-1 font-mono text-[11px] text-amber-800 border border-amber-200">
+                                    {{ chr(123) . chr(123) . $placeholder . chr(125) . chr(125) }}
+                                </span>
+                            @endforeach
+                        </div>
                     </div>
                 @endif
 
-                <div class="rounded-lg border border-neutral-200 bg-white p-6 shadow-sm">
-                    <h3 class="text-sm font-semibold text-neutral-900">
-                        Aksi
+                {{-- Action Card --}}
+                <div class="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 mb-4">
+                        Aksi Template
                     </h3>
-                    <a
-    href="{{ route('jenis-surat.template.edit', $jenisSurat) }}"
-    class="block w-full rounded-md bg-primary-base px-4 py-2 text-center text-sm font-semibold text-white hover:bg-primary-hover"
->
-    Edit Template (Online)
-</a>
-                    <div class="mt-4 space-y-3">
+                    
+                    <div class="space-y-3">
+                        <a
+                            href="{{ route('jenis-surat.template.edit', $jenisSurat) }}"
+                            class="block w-full rounded-xl bg-[#517085] px-4 py-2.5 text-center text-xs font-semibold text-white shadow-sm hover:bg-[#425d70] transition duration-150"
+                        >
+                            Edit Template (Online)
+                        </a>
+
                         <a
                             href="{{ route('jenis-surat.template.preview', $jenisSurat) }}"
                             target="_blank"
-                            class="block w-full rounded-md bg-primary-base px-4 py-2 text-center text-sm font-semibold text-white hover:bg-primary-hover"
+                            class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-center text-xs font-semibold text-slate-700 hover:bg-slate-50 transition duration-150"
                         >
                             Preview Template PDF
                         </a>
@@ -229,7 +237,7 @@
 
                                 <button
                                     type="submit"
-                                    class="w-full rounded-md border border-danger-border bg-white px-4 py-2 text-sm font-semibold text-danger-base hover:bg-danger-background"
+                                    class="w-full rounded-xl bg-rose-50 border border-rose-200 px-4 py-2.5 text-center text-xs font-semibold text-rose-700 hover:bg-rose-100 transition duration-150"
                                 >
                                     Hapus Template
                                 </button>
@@ -238,9 +246,9 @@
 
                         <a
                             href="{{ route('jenis-surat.index') }}"
-                            class="block w-full rounded-md border border-neutral-300 bg-white px-4 py-2 text-center text-sm font-semibold text-neutral-700 hover:bg-neutral-50"
+                            class="block w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-center text-xs font-semibold text-slate-500 hover:bg-slate-50 transition duration-150"
                         >
-                            Kembali
+                            Kembali ke Master Surat
                         </a>
                     </div>
                 </div>

@@ -4,11 +4,11 @@
 
 @section('content')
     <div class="mx-auto max-w-4xl">
-        <div class="mb-6">
-            <h2 class="text-lg font-semibold text-neutral-900">
+        <div class="mb-8">
+            <h2 class="text-xl font-bold text-slate-800 tracking-tight">
                 Edit User
             </h2>
-            <p class="text-sm text-neutral-500">
+            <p class="mt-1 text-xs text-slate-500">
                 Perbarui data user, role, dan status aktif.
             </p>
         </div>
@@ -19,17 +19,17 @@
 
             @include('users._form', ['user' => $user])
 
-            <div class="mt-6 flex justify-end gap-3">
+            <div class="mt-6 flex items-center justify-end gap-3 pt-4 border-t border-slate-200/80">
                 <a
                     href="{{ route('users.index') }}"
-                    class="rounded-md border border-neutral-300 bg-white px-4 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-50"
+                    class="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition duration-150"
                 >
                     Batal
                 </a>
 
                 <button
                     type="submit"
-                    class="rounded-md bg-primary-base px-4 py-2 text-sm font-semibold text-white hover:bg-primary-hover"
+                    class="rounded-xl bg-[#517085] px-5 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-[#425d70] active:bg-[#354c5c] transition duration-150"
                 >
                     Simpan Perubahan
                 </button>

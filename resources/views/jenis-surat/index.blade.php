@@ -3,81 +3,81 @@
 @section('title', 'Jenis Surat')
 
 @section('content')
-    <div class="mb-6 flex items-center justify-between">
+    <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-            <h2 class="text-lg font-semibold text-neutral-900">
-                Jenis Surat
+            <h2 class="text-xl font-bold text-slate-800 tracking-tight">
+                Master Jenis Surat
             </h2>
-            <p class="text-sm text-neutral-500">
-                Master jenis surat dan template.
+            <p class="mt-1 text-xs text-slate-500">
+                Kelola master jenis surat dan template kustom.
             </p>
         </div>
 
         <a
             href="{{ route('jenis-surat.create') }}"
-            class="rounded-md bg-primary-base px-4 py-2 text-sm font-semibold text-white hover:bg-primary-hover"
+            class="inline-flex items-center justify-center rounded-xl bg-[#517085] px-4 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-[#425d70] active:bg-[#354c5c] transition duration-150"
         >
-            Tambah Jenis Surat
+            + Tambah Jenis Surat
         </a>
     </div>
 
-    <div class="overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm">
+    <div class="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-neutral-200 text-sm">
-                <thead class="bg-neutral-50 text-left text-xs font-semibold uppercase tracking-wide text-neutral-500">
+            <table class="min-w-full divide-y divide-slate-100 text-xs">
+                <thead class="bg-slate-50/80 text-left font-bold uppercase tracking-wider text-slate-500">
                     <tr>
-                        <th class="px-6 py-3">Nama</th>
-                        <th class="px-6 py-3">Kode</th>
-                        <th class="px-6 py-3">Jumlah Field</th>
-                        <th class="px-6 py-3">Template</th>
-                        <th class="px-6 py-3">Pengajuan</th>
-                        <th class="px-6 py-3 text-right">Aksi</th>
+                        <th class="px-6 py-4">Nama</th>
+                        <th class="px-6 py-4">Kode</th>
+                        <th class="px-6 py-4">Jumlah Field</th>
+                        <th class="px-6 py-4">Template</th>
+                        <th class="px-6 py-4">Pengajuan</th>
+                        <th class="px-6 py-4 text-right">Aksi</th>
                     </tr>
                 </thead>
 
-                <tbody class="divide-y divide-neutral-100 bg-white">
+                <tbody class="divide-y divide-slate-100 bg-white">
                     @forelse ($jenisSuratList as $item)
-                        <tr>
-                            <td class="px-6 py-4 font-medium text-neutral-900">
+                        <tr class="hover:bg-slate-50/60 transition-colors duration-150">
+                            <td class="px-6 py-4 font-bold text-slate-800">
                                 {{ $item->nama }}
                             </td>
 
-                            <td class="px-6 py-4">
+                            <td class="px-6 py-4 font-mono text-slate-600">
                                 {{ $item->kode }}
                             </td>
 
-                            <td class="px-6 py-4">
+                            <td class="px-6 py-4 text-slate-600">
                                 {{ count($item->fields_json ?? []) }} field
                             </td>
 
                             <td class="px-6 py-4">
                                 @if ($item->template_path)
-                                    <span class="rounded-full bg-success-background px-2.5 py-1 text-xs font-medium text-success-text">
+                                    <span class="inline-flex items-center rounded-lg bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700">
                                         Tersimpan
                                     </span>
                                 @else
-                                    <span class="rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-medium text-neutral-700">
+                                    <span class="inline-flex items-center rounded-lg bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-slate-600">
                                         Default
                                     </span>
                                 @endif
                             </td>
 
-                            <td class="px-6 py-4">
+                            <td class="px-6 py-4 font-semibold text-[#517085]">
                                 {{ $item->pengajuan_surat_count }}
                             </td>
 
                             <td class="px-6 py-4 text-right">
-                                <div class="flex items-center justify-end gap-3">
+                                <div class="flex items-center justify-end gap-2">
                                     <a
                                         href="{{ route('jenis-surat.edit', $item) }}"
-                                        class="text-xs font-semibold text-primary-base hover:text-primary-hover"
+                                        class="rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-200 transition duration-150"
                                     >
                                         Edit
                                     </a>
 
                                     <a
                                         href="{{ route('jenis-surat.template', $item) }}"
-                                        class="text-xs font-semibold text-secondary-pressed hover:text-secondary-pressed"
+                                        class="rounded-lg bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition duration-150"
                                     >
                                         Template
                                     </a>
@@ -86,13 +86,14 @@
                                         method="POST"
                                         action="{{ route('jenis-surat.destroy', $item) }}"
                                         onsubmit="return confirm('Hapus jenis surat ini?')"
+                                        class="inline"
                                     >
                                         @csrf
                                         @method('DELETE')
 
                                         <button
                                             type="submit"
-                                            class="text-xs font-semibold text-danger-base hover:text-danger-text"
+                                            class="rounded-lg bg-rose-50 px-2.5 py-1 text-xs font-semibold text-rose-700 hover:bg-rose-100 transition duration-150"
                                         >
                                             Hapus
                                         </button>
@@ -102,7 +103,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-6 py-8 text-center text-neutral-500">
+                            <td colspan="6" class="px-6 py-12 text-center text-slate-500">
                                 Belum ada jenis surat.
                             </td>
                         </tr>
@@ -112,7 +113,7 @@
         </div>
 
         @if ($jenisSuratList->hasPages())
-            <div class="border-t border-neutral-200 px-6 py-4">
+            <div class="border-t border-slate-100 px-6 py-4">
                 {{ $jenisSuratList->links() }}
             </div>
         @endif
